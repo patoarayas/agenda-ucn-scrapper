@@ -29,7 +29,7 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Contact {
 
     @DatabaseField(id = true)
-    private String id;
+    private Integer id;
     @DatabaseField
     private String name;
     @DatabaseField
@@ -55,7 +55,7 @@ public class Contact {
     /**
      * Constructor
     */
-    public Contact(String id, String name, String position, String unit, String email, String phone, String office, String address) {
+    public Contact(Integer id, String name, String position, String unit, String email, String phone, String office, String address) {
         this.id = id;
         this.name = name;
         this.position = position;

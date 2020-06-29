@@ -29,7 +29,6 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,20 +65,32 @@ public class Scrapper {
             log.error("Error creating a DB connection: "+ e.getMessage());
         } finally {
             try {
+                assert connectionSource != null;
                 connectionSource.close();
             } catch (IOException e) {
                 log.error("Error closing DB connection: "+e.getMessage());
             }
         }
 
+        // Search for last id in db and start scrapping from it.
+        int id = 0;
+        try {
+            assert contactDao != null;
+            String strId = contactDao.queryRaw("select max(id) from contactos").getFirstResult()[0];
+            try{
+            id = Integer.parseInt(strId);
+            } catch (Exception e){
+                log.debug("Error parsing id. Empty db?: "+e.getMessage());
+            }
+            log.info("Starting scrapping from ID: "+id);
+        } catch (SQLException e){
+            log.error("Error getting last iserted id: "+e.getMessage());
+        }
 
-        // URL to agenda ucn
-        final String url = "http://online.ucn.cl/directoriotelefonicoemail/fichaGenerica/?cod=";
-        int id = 21;
         int lastId = 29730;
 
         // For every id get contact info
-        for(int i = id; id <= lastId;id++){
+        for(; id <=lastId; id++){
             log.info("Getting contact id: "+id);
             Contact contact = getContactInfo(id);
             if(contact != null){
@@ -117,7 +128,7 @@ public class Scrapper {
             String address =  doc.getElementById("lblDireccion").text();
 
             if(!name.isEmpty()){
-                newContact = new Contact(id.toString(),name,position,unit,email,phone,office,address);
+                newContact = new Contact(id,name,position,unit,email,phone,office,address);
                 log.debug("CONTACT: "+ newContact.toString());
             }
 
